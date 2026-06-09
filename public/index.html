@@ -997,7 +997,7 @@ function init404(){renderFtr('404');}
 // ================================================================
 // NOOVIIA API — Connexion backend réel
 // ================================================================
-const API_URL = 'http://localhost:3000/api';
+const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : '/api';
 
 // Override des fonctions pour utiliser l'API réelle
 async function apiGet(path) {
