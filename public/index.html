@@ -1097,16 +1097,12 @@ async function initSearch() {
 
 // Checkout Stripe pour inscription prestataire
 async function stripeCheckout(vendorId, email) {
-  const result = await apiPost('/stripe/create-checkout', {
-    vendor_id: vendorId,
-    email: email
-  });
+  const result = await apiPost('/stripe', { email: email });
   if (result?.success && result.url) {
     window.location.href = result.url;
   } else {
-    // Mode demo : simuler le paiement
-    toast('Mode démo — paiement simulé', true);
-    return true;
+    toast(result?.error || 'Erreur paiement', '', 'err');
+    return false;
   }
 }
 
