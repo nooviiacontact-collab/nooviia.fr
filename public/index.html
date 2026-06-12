@@ -694,7 +694,7 @@ select.inp{appearance:none;cursor:pointer}
     <div class="dash-grid"><div class="dash-card reveal"><div class="dash-n" id="d-views">—</div><div class="dash-l">Vues du profil</div><div class="dash-t"><i class="ti ti-trending-up"></i>Ce mois</div></div><div class="dash-card rev2"><div class="dash-n" id="d-contacts">—</div><div class="dash-l">Contacts reçus</div><div class="dash-t"><i class="ti ti-trending-up"></i>Ce mois</div></div><div class="dash-card rev3"><div class="dash-n" id="d-ads-count">—</div><div class="dash-l">Annonces disponibles</div><div class="dash-t" style="color:var(--gold2)"><i class="ti ti-clipboard-list"></i>Votre zone</div></div><div class="dash-card reveal"><div class="dash-n">28€</div><div class="dash-l">Abonnement</div><div class="dash-t"><i class="ti ti-check"></i>Actif</div></div></div>
     <div class="dash-sec"><div class="dash-sec-title"><span><i class="ti ti-clipboard-list" style="color:var(--gold2)"></i>&nbsp;Dernières annonces clients</span><button class="btn btn-ghost btn-sm" onclick="goTo('search')">Voir tout</button></div><div id="dash-ads"></div></div>
     <div class="dash-sec"><div class="dash-sec-title"><span><i class="ti ti-messages" style="color:var(--gold2)"></i>&nbsp;Messages récents</span><button class="btn btn-ghost btn-sm" onclick="goTo('messages')">Voir tout</button></div><div id="dash-msgs"></div></div>
-    <div class="dash-sec"><div class="dash-sec-title"><span><i class="ti ti-credit-card" style="color:var(--gold2)"></i>&nbsp;Mon abonnement</span></div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:15px;font-weight:600;color:var(--text)">Abonnement Pro Nooviia — 28€/mois</div><div style="font-size:13px;color:var(--text3);margin-top:3px">Sans engagement &middot; <span style="background:var(--green2);color:var(--green);border:1px solid rgba(61,170,106,.2);padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700">● ACTIF</span></div></div><button class="btn btn-ghost btn-sm" onclick="toast('Gestion abonnement — bientôt disponible')"><i class="ti ti-credit-card"></i>Gérer</button></div></div>
+    <div class="dash-sec"><div class="dash-sec-title"><span><i class="ti ti-credit-card" style="color:var(--gold2)"></i>&nbsp;Mon abonnement</span></div><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px"><div><div style="font-size:15px;font-weight:600;color:var(--text)">Abonnement Pro Nooviia — 28€/mois</div><div style="font-size:13px;color:var(--text3);margin-top:3px">Sans engagement &middot; <span style="background:var(--green2);color:var(--green);border:1px solid rgba(61,170,106,.2);padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700">● ACTIF</span></div></div><button class="btn btn-ghost btn-sm" onclick="openBillingPortal()"><i class="ti ti-credit-card"></i>Gérer</button></div></div>
   </div></section>
   <div id="footer-dash"></div>
 </div>
@@ -1103,6 +1103,20 @@ async function stripeCheckout(vendorId, email) {
   } else {
     toast(result?.error || 'Erreur paiement', '', 'err');
     return false;
+  }
+}
+
+// ===== PATCH : Portail Stripe (gérer abonnement) =====
+async function openBillingPortal() {
+  const u = getU();
+  const email = u?.email || u?.user_metadata?.email;
+  if (!email) { toast('Email introuvable', '', 'err'); return; }
+  toast('Ouverture du portail...', '', 'ok');
+  const result = await apiPost('/portal', { email: email });
+  if (result?.success && result.url) {
+    window.location.href = result.url;
+  } else {
+    toast(result?.error || 'Erreur portail', '', 'err');
   }
 }
 
