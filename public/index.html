@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#0D0B10;--s1:#141118;--s2:#1C1820;--s3:#252030;--s4:#332D40;
@@ -2023,7 +2024,60 @@ function updateDevisTotal(){
 function exportDevis(){
   var client=document.getElementById('dv-client').value||'Client';
   var date=document.getElementById('dv-date').value;
-  toast('Devis pour '+client+' généré (PDF bientôt disponible)',true);
+  var notes=document.getElementById('dv-notes').value;
+  var u=getU();
+  var vendorName=u?.user_metadata?.name||u?.email||'Prestataire';
+  var lines=[];
+  document.querySelectorAll('#dv-lines .devis-line').forEach(function(l){
+    var inputs=l.querySelectorAll('input');
+    var desc=inputs[0].value;
+    var price=parseFloat(inputs[1].value)||0;
+    if(desc||price) lines.push({desc:desc||'Prestation', price:price});
+  });
+  if(!lines.length){ toast('Ajoutez au moins une prestation','','err'); return; }
+
+  var doc=new jspdf.jsPDF();
+  var y=20;
+  doc.setFontSize(20);
+  doc.text('Devis', 14, y); y+=10;
+  doc.setFontSize(11);
+  doc.text('Prestataire : '+vendorName, 14, y); y+=6;
+  doc.text('Client : '+client, 14, y); y+=6;
+  if(date) { doc.text('Date événement : '+date, 14, y); y+=6; }
+  y+=4;
+  doc.setLineWidth(0.5);
+  doc.line(14, y, 196, y); y+=8;
+
+  doc.setFontSize(12);
+  doc.text('Description', 14, y);
+  doc.text('Prix', 180, y, {align:'right'}); y+=6;
+  doc.setFontSize(10);
+  var total=0;
+  lines.forEach(function(line){
+    doc.text(line.desc, 14, y);
+    doc.text(line.price.toLocaleString('fr-FR')+' €', 180, y, {align:'right'});
+    total+=line.price;
+    y+=7;
+  });
+  y+=2;
+  doc.line(14, y, 196, y); y+=8;
+  doc.setFontSize(13);
+  doc.text('Total estim\u00e9 : '+total.toLocaleString('fr-FR')+' €', 14, y); y+=10;
+
+  if(notes){
+    doc.setFontSize(10);
+    doc.text('Notes / conditions :', 14, y); y+=6;
+    var splitNotes=doc.splitTextToSize(notes, 180);
+    doc.text(splitNotes, 14, y); y+=splitNotes.length*5;
+  }
+
+  y+=10;
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('G\u00e9n\u00e9r\u00e9 via Nooviia · nooviia.fr', 14, 285);
+
+  doc.save('devis-'+client.replace(/[^a-z0-9]/gi,'_')+'.pdf');
+  toast('Devis PDF t\u00e9l\u00e9charg\u00e9 !', true);
   closeModal('modal-devis');
 }
 function openDevis(){openModal('modal-devis');}
